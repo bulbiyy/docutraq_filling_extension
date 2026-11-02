@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DocuTraq Assistant</title>
+  <link rel="stylesheet" href="ui.css">
+</head>
+<body class="panel">
+  <header class="brand">
+    <div class="brand-mark">D</div>
+    <div class="brand-copy"><h1>DocuTraq Assistant</h1><p>UF Student Organization Finance</p></div>
+    <button id="dismiss" class="icon-button" title="Dismiss panel" aria-label="Dismiss panel">×</button>
+  </header>
+  <main>
+    <div class="eyebrow">QUICK REQUEST</div>
+    <h2>What are we preparing?</h2>
+    <label class="field">
+      <span>Organization</span>
+      <select id="club">
+        <option value="russian">Russian Culture Club</option>
+      </select>
+    </label>
+    <label class="field">
+      <span>Funding type</span>
+      <select id="type">
+        <option value="baseFunding">Base Funding</option>
+        <option value="eventBudget">Event Budget</option>
+        <option value="operational">Operational Budget</option>
+      </select>
+    </label>
+    <div id="templateInfo" class="template-info"></div>
+    <button id="start" class="primary wide">
+      <span class="button-icon">✦</span> Start Request &amp; Autofill
+    </button>
+    <p id="status" class="status" role="status" aria-live="polite">Ready when you are.</p>
+
+    <div class="divider"></div>
+    <button id="settings" class="settings-link">
+      <span class="gear">⚙</span>
+      <span><strong>Edit saved information</strong><small>Descriptions, goals, attendance and budget items</small></span>
+      <span class="chevron">›</span>
+    </button>
+    <div class="privacy-note">
+      <strong>Review before submitting.</strong>
+      The assistant fills request information but does not press DocuTraq's final Submit button.
+    </div>
+  </main>
+  <script src="sidepanel.js"></script>
+</body>
+</html>

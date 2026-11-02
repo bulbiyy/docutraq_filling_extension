@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "DocuTraq Assistant",
+  "version": "0.4.0",
+  "description": "Persistent side-panel assistant for preparing UF DocuTraq budget requests.",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "sidePanel",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://www.docutraq.sg.ufl.edu/*"
+  ],
+  "action": {
+    "default_title": "Open DocuTraq Assistant"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.docutraq.sg.ufl.edu/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "options_page": "settings.html"
+}

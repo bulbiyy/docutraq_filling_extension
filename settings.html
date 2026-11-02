@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DocuTraq Assistant Settings</title>
+  <link rel="stylesheet" href="ui.css">
+</head>
+<body class="settings-page">
+  <header class="brand">
+    <div class="brand-mark">D</div>
+    <div class="brand-copy"><h1>Saved request information</h1><p>Russian Culture Club templates</p></div>
+  </header>
+  <main class="settings-main">
+    <div class="topline">
+      <div><div class="eyebrow">TEMPLATE EDITOR</div><h2>Edit your saved answers</h2></div>
+      <button id="back" class="secondary">← Back</button>
+    </div>
+    <label class="field">
+      <span>Template to edit</span>
+      <select id="templateType">
+        <option value="baseFunding">Base Funding</option>
+        <option value="eventBudget">Event Budget</option>
+        <option value="operational">Operational Budget</option>
+      </select>
+    </label>
+    <section class="settings-card">
+      <h3>Project information</h3>
+      <div class="grid two">
+        <label class="field"><span>Activity title</span><input id="title"></label>
+        <label class="field"><span>Event date (if applicable)</span><input id="eventDate" placeholder="MM/DD/YYYY"></label>
+      </div>
+      <label class="field"><span>Purpose of activity</span><textarea id="purpose" rows="5"></textarea></label>
+      <label class="field"><span>Benefits to the State, University, and/or organization</span><textarea id="benefits" rows="5"></textarea></label>
+      <div class="grid two">
+        <label class="field"><span>Venue</span><input id="venue"></label>
+        <label class="field"><span>Priority</span><select id="priority"><option>Low</option><option>Medium</option><option>High</option></select></label>
+      </div>
+    </section>
+
+    <section class="settings-card">
+      <h3>Attendance information</h3>
+      <div class="grid two">
+        <label class="field"><span>Expected attendance</span><input id="expectedAttendance" type="number" min="0"></label>
+        <label class="field"><span>Previous attendance</span><input id="previousAttendance" type="number" min="0"></label>
+      </div>
+      <div class="grid two">
+        <label class="field"><span>Previous GBM attendance</span><input id="previousGbmAttendance" type="number" min="0"></label>
+        <label class="field"><span>GBMs per semester</span><input id="gbmsPerSemester" type="number" min="0"></label>
+      </div>
+      <p class="hint">The attendance-entry sections in DocuTraq are separate from these summary values. Their popup fields will be connected after we inspect them live.</p>
+    </section>
+
+    <section class="settings-card">
+      <div class="section-head"><h3>Budget items</h3><button id="addItem" class="text-button">+ Add item</button></div>
+      <div id="items"></div>
+    </section>
+
+    <section class="settings-card">
+      <h3>Goals and committee information</h3>
+      <label class="field"><span>Purpose/goals of your group</span><textarea id="groupGoals" rows="5"></textarea></label>
+      <label class="field"><span>How have you accomplished these goals?</span><textarea id="accomplished" rows="5"></textarea></label>
+      <label class="field"><span>Other information for the budget committee</span><textarea id="otherInfo" rows="3"></textarea></label>
+    </section>
+
+    <div class="savebar">
+      <span id="saveStatus" role="status" aria-live="polite">Changes are stored locally in this browser.</span>
+      <button id="save" class="primary">Save template</button>
+    </div>
+  </main>
+  <template id="itemTemplate">
+    <article class="item-card">
+      <div class="item-head"><strong>Budget line item</strong><button type="button" class="remove text-button">Remove</button></div>
+      <div class="grid two">
+        <label class="field"><span>Category</span><select class="category">
+          <option>PROGRAMS</option><option>ADVERTISING</option><option>AWARDS</option><option>COPIES</option><option>FOOD</option><option>HONORARIUMS</option><option>BASE FUNDING</option>
+        </select></label>
+        <label class="field"><span>Description</span><input class="description"></label>
+      </div>
+      <div class="grid two">
+        <label class="field"><span>Quantity</span><input class="quantity" type="number" min="0" step="1"></label>
+        <label class="field"><span>Cost per item ($)</span><input class="cost" type="number" min="0" step="0.01"></label>
+      </div>
+    </article>
+  </template>
+  <script src="templates.js"></script>
+  <script src="settings.js"></script>
+</body>
+</html>
