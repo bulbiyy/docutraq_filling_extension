@@ -34,6 +34,38 @@
     )) || null;
   }
 
+  function setPriority(priority) {
+    const level = String(priority || "Low").toLowerCase();
+    const fraction = level === "high" ? 1 : level === "medium" ? 0.5 : 0;
+    const ranges = [...document.querySelectorAll('input[type="range"]')].filter(visible);
+    let range = ranges.find(el => norm([
+      el.id, el.name, el.getAttribute("aria-label"),
+      el.parentElement?.innerText, el.parentElement?.parentElement?.innerText
+    ].join(" ")).includes("priority"));
+    if (!range && ranges.length === 1) range = ranges[0];
+    if (range) {
+      const min = Number(range.min || 0), max = Number(range.max || 100);
+      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
+      if (setter) setter.call(range, String(min + (max-min)*fraction));
+      else range.value = String(min + (max-min)*fraction);
+      range.dispatchEvent(new Event("input", {bubbles:true}));
+      range.dispatchEvent(new Event("change", {bubbles:true}));
+      return true;
+    }
+    const sliders = [...document.querySelectorAll(".ui-slider,[role='slider'],.slider")].filter(visible);
+    const slider = sliders.find(el => norm(el.parentElement?.innerText || el.parentElement?.parentElement?.innerText).includes("priority"));
+    if (slider) {
+      const handle = slider.querySelector(".ui-slider-handle,[role='slider']") || slider;
+      handle.focus?.();
+      handle.dispatchEvent(new KeyboardEvent("keydown",{key:"Home",bubbles:true}));
+      const steps = level === "high" ? 10 : level === "medium" ? 5 : 0;
+      for(let i=0;i<steps;i++) handle.dispatchEvent(new KeyboardEvent("keydown",{key:"ArrowRight",bubbles:true}));
+      handle.dispatchEvent(new KeyboardEvent("keyup",{key:"ArrowRight",bubbles:true}));
+      return true;
+    }
+    return false;
+  }
+
   function fillSummary(data) {
     let count = 0;
     const map = [
@@ -48,47 +80,63 @@
       const field = findField(terms);
       if (value && nativeSet(field, value)) count++;
     }
+    if (setPriority(data.priority)) count++;
     return count;
   }
 
   function findCategorySection(category) {
-    const all = [...document.querySelectorAll("h1,h2,h3,h4,strong,b,div,section,article,p")]
-      .filter(visible);
-    const heading = all.find(el => {
-      const text = norm(el.innerText || el.textContent);
-      return text.length < 100 && text.includes(category.toLowerCase()) &&
-        (/\b\d+\s*[-–]\s*/.test(text) || text === category.toLowerCase());
-    });
-    if (!heading) return null;
-    let node = heading;
-    for (let i = 0; i < 7 && node; i++, node = node.parentElement) {
-      if (node.querySelector && [...node.querySelectorAll("a,button")].some(el =>
-        visible(el) && norm(el.innerText || el.textContent).includes("add a new item"))) return node;
+    const wanted = norm(category);
+    const headings = [...document.querySelectorAll("h1,h2,h3,h4,strong,b,div,section,article,p,span")]
+      .filter(visible)
+      .filter(el => {
+        const text = norm(el.innerText || el.textContent);
+        // DocuTraq headings are rendered as e.g. "2 - PROGRAMS".
+        return text === wanted || text.replace(/^\\d+\\s*[-–]\\s*/, "") === wanted;
+      })
+      .sort((a, b) => (a.innerText || a.textContent).length - (b.innerText || b.textContent).length);
+
+    for (const heading of headings) {
+      let node = heading;
+      for (let i = 0; i < 7 && node; i++, node = node.parentElement) {
+        const add = [...(node.querySelectorAll?.("a,button") || [])].find(el =>
+          visible(el) && norm(el.innerText || el.textContent).includes("add a new item"));
+        if (add) return { container: node, add };
+      }
     }
-    return heading.parentElement?.parentElement || null;
+    return null;
+  }
+
+  function findOpenItemDialog() {
+    const explicit = [...document.querySelectorAll('[role="dialog"],.ui-dialog,.ui-dialog-content,.modal,.modal-dialog')]
+      .filter(visible)
+      .find(el => norm(el.innerText).includes("add/edit items"));
+    if (explicit) return explicit;
+
+    // DocuTraq's legacy popup may not expose dialog semantics. Find the
+    // smallest visible wrapper containing its title and the three inputs.
+    const candidates = [...document.querySelectorAll("div")]
+      .filter(el => visible(el) &&
+        norm(el.innerText).includes("add/edit items") &&
+        el.querySelectorAll("input").length >= 3);
+    return candidates.sort((a, b) =>
+      a.querySelectorAll("*").length - b.querySelectorAll("*").length
+    )[0] || null;
   }
 
   async function addBudgetItem(item) {
     const category = norm(item.category).toUpperCase();
-    const section = findCategorySection(category);
-    if (!section) return { ok: false, reason: `Couldn't find the ${category} budget section.` };
 
-    const addLink = [...section.querySelectorAll("a,button")]
-      .find(el => visible(el) && norm(el.innerText || el.textContent).includes("add a new item"));
-    if (!addLink) return { ok: false, reason: `Couldn't find Add a New Item under ${category}.` };
-
-    addLink.click();
-    await sleep(350);
-
-    const dialogs = [...document.querySelectorAll('[role="dialog"],.ui-dialog,.modal,.modal-dialog')]
-      .filter(visible);
-    let dialog = dialogs.find(el => norm(el.innerText).includes("add/edit items")) || dialogs[dialogs.length - 1];
+    // If the user already opened the Add/Edit Items popup, use it directly.
+    // Otherwise open the popup belonging to the requested budget category.
+    let dialog = findOpenItemDialog();
     if (!dialog) {
-      const candidates = [...document.querySelectorAll("div")]
-        .filter(el => visible(el) && norm(el.innerText).includes("add/edit items") && el.querySelectorAll("input").length >= 3);
-      dialog = candidates.sort((a,b) => a.querySelectorAll("*").length - b.querySelectorAll("*").length)[0] || null;
+      const sectionMatch = findCategorySection(category);
+      if (!sectionMatch) return { ok: false, reason: `Couldn't locate the ${category} section. The category heading must match a visible DocuTraq budget line.` };
+      sectionMatch.add.click();
+      await sleep(450);
+      dialog = findOpenItemDialog();
     }
-    if (!dialog) return { ok: false, reason: `The ${category} item dialog did not open.` };
+    if (!dialog) return { ok: false, reason: `The ${category} Add/Edit Items dialog did not open.` };
 
     const inputs = [...dialog.querySelectorAll("input")].filter(visible);
     const description = findField(["description"], dialog) || inputs[0];
